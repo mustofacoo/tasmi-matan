@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Hafalan Matan Syathibiyyah</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.3/cdn.min.js" defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d5016 0%, #3a6b1c 100%);
+            color: #333;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #2d5016;
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1em;
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            padding: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 15px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #666;
+            font-size: 14px;
+            min-width: 120px;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #d4af37 0%, #ffd700 100%);
+            color: #2d5016;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .tab.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d5016;
+            font-size: 14px;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #d4af37;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group-optional {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #d4af37;
+        }
+
+        .optional-label {
+            color: #666;
+            font-size: 12px;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #d4af37 0%, #ffd700 100%);
+            color: #2d5016;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 12px;
+            width: auto;
+            margin: 0 5px 0 0;
+        }
+
+        .leaderboard {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .leaderboard-header {
+            background: linear-gradient(135deg, #2d5016 0%, #3a6b1c 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard-item:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+
+        .rank {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-right: 20px;
+            width: 50px;
+            text-align: center;
+            color: #2d5016;
+        }
+
+        .participant-info {
+            flex: 1;
+        }
+
+        .participant-name {
+            font-weight: 600;
+            color: #2d5016;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #d4af37 0%, #ffd700 100%);
+            transition: width 0.3s ease;
+        }
+
+        .stats {
+            text-align: right;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .hafalan-count {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2d5016;
+        }
+
+        .admin-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .admin-stats {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            color: #2d5016;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .login-form {
+            max-width: 400px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .current-user {
+            background: rgba(212, 175, 55, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #2d5016;
+            text-align: center;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .tabs {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .tab {
+                margin: 2px 0;
+                padding: 15px;
+                font-size: 16px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .leaderboard-item {
+                flex-direction: column;
+                text-align: center;
+                padding: 15px;
+            }
+
+            .rank {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+
+            .participant-info {
+                margin-bottom: 10px;
+                width: 100%;
+            }
+
+            .stats {
+                text-align: center;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn-small {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            .admin-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .modal {
+                padding: 10px;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.3em;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .tab {
+                font-size: 14px;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" x-data="syathibiyyahTracker()">
+        <!-- Login Form untuk Admin -->
+        <div x-show="!isLoggedIn && activeTab === 'admin'" class="login-form">
+            <h2 style="color: #2d5016; text-align: center; margin-bottom: 20px;">🔐 Login Admin</h2>
+            <div class="form-group">
+                <label>Username:</label>
+                <input type="text" x-model="loginUsername" placeholder="Masukkan username">
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" x-model="loginPassword" placeholder="Masukkan password">
+            </div>
+            <button class="btn btn-primary" @click="adminLogin()">Login</button>
+            <div x-show="loginError" class="alert alert-error" x-text="loginError"></div>
+        </div>
+
+        <!-- Main Content -->
+        <div x-show="activeTab !== 'admin' || isLoggedIn">
+            <div class="header">
+                <h1>Rekap Hafalan Matan Syathibiyyah</h1>
+                <p>Tata niat, semoga Allah mudahkan!</p>
+                <p>dibuat oleh Markaz Qiroat Indonesia</p>
+            </div>
+
+            <div class="tabs">
+                <div class="tab" :class="{ active: activeTab === 'ziyadah' }" @click="activeTab = 'ziyadah'">
+                     Input Ziyadah
+                </div>
+                <div class="tab" :class="{ active: activeTab === 'leaderboard' }" @click="activeTab = 'leaderboard'">
+                     Rekap Hafalan
+                </div>
+                <div class="tab" :class="{ active: activeTab === 'tasmi' }" @click="activeTab = 'tasmi'">
+                     Rekap Tasmi
+                </div>
+                <div class="tab" :class="{ active: activeTab === 'admin', disabled: !isLoggedIn }" @click="activeTab = 'admin'">
+                    ⚙️ Admin 
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- Tab Input Ziyadah -->
+                <div x-show="activeTab === 'ziyadah'">
+                    <h2 style="color: #2d5016; margin-bottom: 20px;">📝 Input Ziyadah Terakhir</h2>
+                    
+                    <div class="form-group">
+                        <label for="participant">Pilih Peserta:</label>
+                        <select id="participant" x-model="selectedParticipant">
+                            <option value="">-- Pilih Peserta --</option>
+                            <template x-for="participant in sortedParticipantsByName" :key="participant.id">
+                                <option :value="participant.id" x-text="participant.name"></option>
+                            </template>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fromBait">Dari Bait:</label>
+                            <input type="number" id="fromBait" x-model="ziyadahFrom" min="1" max="1173" placeholder="Nomor bait awal">
+                        </div>
+                        <div class="form-group">
+                            <label for="toBait">Sampai Bait:</label>
+                            <input type="number" id="toBait" x-model="ziyadahTo" min="1" max="1173" placeholder="Nomor bait akhir">
+                        </div>
+                    </div>
+
+                    <div class="form-group-optional">
+                        <div class="optional-label">Opsional - Jumlah Tasmi Sekali Duduk Terakhir</div>
+                        <div class="form-group">
+                            <label for="tasmiAmount">Jumlah Tasmi Sekali Duduk:</label>
+                            <input type="number" id="tasmiAmount" x-model="tasmiAmount" min="0" max="1173" placeholder="Contoh: 50 (kosongkan jika tidak ada)">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" @click="updateZiyadah()">
+                        💾 Simpan Data
+                    </button>
+
+                    <div x-show="message" class="alert" :class="messageType === 'success' ? 'alert-success' : 'alert-error'" x-text="message"></div>
+                </div>
+
+                <!-- Tab Leaderboard -->
+                <div x-show="activeTab === 'leaderboard'">
+                    <div class="leaderboard">
+                        <div class="leaderboard-header">
+                            <h2>Rekap Hafalan Matan Syathibiyyah</h2>
+                            <p>Urutan berdasarkan jumlah bait yang telah dihafal</p>
+                        </div>
+                        
+                        <template x-for="(participant, index) in sortedParticipants" :key="participant.id">
+                            <div class="leaderboard-item">
+                                <div class="rank" x-text="index + 1"></div>
+                                <div class="participant-info">
+                                    <div class="participant-name" x-text="participant.name"></div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" :style="`width: ${(participant.totalHafalan / 1173) * 100}%`"></div>
+                                    </div>
+                                    <div class="stats">
+                                        Ziyadah terakhir: <span x-text="participant.lastZiyadah"></span>
+                                    </div>
+                                </div>
+                                <div class="hafalan-count">
+                                    <span x-text="participant.totalHafalan"></span> / 1173
+                                    <div style="font-size: 0.8em; color: #666;">
+                                        <span x-text="Math.round((participant.totalHafalan / 1173) * 100)"></span>%
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Tab Rekap Tasmi -->
+                <div x-show="activeTab === 'tasmi'">
+                    <h2 style="color: #2d5016; margin-bottom: 20px;">📊 Rekap Tasmi Sekali Duduk</h2>
+                    
+                    <div class="leaderboard">
+                        <div class="leaderboard-header">
+                            <h3>Urutan dari Tasmi Terbanyak</h3>
+                        </div>
+                        
+                        <template x-for="(participant, index) in sortedByTasmi" :key="participant.id">
+                            <div class="leaderboard-item">
+                                <div class="rank" x-text="index + 1"></div>
+                                <div class="participant-info">
+                                    <div class="participant-name" x-text="participant.name"></div>
+                                    <div class="stats">
+                                        Tasmi terakhir: <span x-text="participant.lastTasmi"></span> bait
+                                    </div>
+                                </div>
+                                <div class="hafalan-count">
+                                    <span x-text="participant.maxTasmi"></span> bait
+                                    <div style="font-size: 0.8em; color: #666;">
+                                        sekali duduk
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Tab Admin -->
+                <div x-show="activeTab === 'admin' && isLoggedIn">
+                    <div class="current-user">
+                        🔐 Login sebagai: <strong>mqiadmin</strong> 
+                        <button class="btn btn-secondary btn-small" @click="adminLogout()">Logout</button>
+                    </div>
+
+                    <h2 style="color: #2d5016; margin-bottom: 20px;">⚙️ Admin Panel</h2>
+                    
+                    <div class="admin-actions">
+                        <button class="btn btn-success" @click="showAddParticipantModal = true">
+                            ➕ Tambah Peserta
+                        </button>
+                        <button class="btn btn-primary" @click="showEditParticipantModal = true">
+                            ✏️ Edit Peserta
+                        </button>
+                        <button class="btn btn-primary" @click="showEditTasmiModal = true">
+                            📊 Edit Tasmi
+                        </button>
+                        <button class="btn btn-danger" @click="resetAllData()">
+                            🗑️ Reset Data
+                        </button>
+                    </div>
+
+                    <div class="admin-stats">
+                        <h3 style="margin-bottom: 15px;">📈 Statistik</h3>
+                        <p><strong>Total Peserta:</strong> <span x-text="participants.length"></span></p>
+                        <p><strong>Rata-rata Hafalan:</strong> <span x-text="Math.round(averageHafalan)"></span> bait</p>
+                        <p><strong>Peserta Terdepan:</strong> <span x-text="topParticipant?.name || 'Belum ada'"></span></p>
+                        <p><strong>Tasmi Tertinggi:</strong> <span x-text="topTasmiParticipant?.maxTasmi || 0"></span> bait</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Tambah Peserta -->
+        <div x-show="showAddParticipantModal" class="modal" x-transition>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Tambah Peserta Baru</h3>
+                    <button class="close-btn" @click="showAddParticipantModal = false">×</button>
+                </div>
+                <div class="form-group">
+                    <label>Nama Peserta:</label>
+                    <input type="text" x-model="newParticipantName" placeholder="Masukkan nama lengkap">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-success" @click="addParticipant()">Tambah</button>
+                    <button class="btn btn-secondary" @click="showAddParticipantModal = false">Batal</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Edit Peserta -->
+        <div x-show="showEditParticipantModal" class="modal" x-transition>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Edit Data Peserta</h3>
+                    <button class="close-btn" @click="showEditParticipantModal = false">×</button>
+                </div>
+                <div class="form-group">
+                    <label>Pilih Peserta:</label>
+                    <select x-model="editingParticipant">
+                        <option value="">-- Pilih Peserta --</option>
+                        <template x-for="participant in sortedParticipantsByName" :key="participant.id">
+                            <option :value="participant.id" x-text="participant.name"></option>
+                        </template>
+                    </select>
+                </div>
+                <template x-if="editingParticipant">
+                    <div>
+                        <div class="form-group">
+                            <label>Nama:</label>
+                            <input type="text" x-model="editParticipantName">
+                        </div>
+                        <div class="form-group">
+                            <label>Total Hafalan:</label>
+                            <input type="number" x-model="editParticipantHafalan" min="0" max="1173">
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-success" @click="saveParticipantEdit()">Simpan</button>
+                            <button class="btn btn-danger" @click="deleteParticipant()">Hapus</button>
+                            <button class="btn btn-secondary" @click="showEditParticipantModal = false">Batal</button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Modal Edit Tasmi -->
+        <div x-show="showEditTasmiModal" class="modal" x-transition>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Edit Tasmi Peserta</h3>
+                    <button class="close-btn" @click="showEditTasmiModal = false">×</button>
+                </div>
+                <div class="form-group">
+                    <label>Pilih Peserta:</label>
+                    <select x-model="editingTasmiParticipant">
+                        <option value="">-- Pilih Peserta --</option>
+                        <template x-for="participant in sortedParticipantsByName" :key="participant.id">
+                            <option :value="participant.id" x-text="participant.name"></option>
+                        </template>
+                    </select>
+                </div>
+                <template x-if="editingTasmiParticipant">
+                    <div>
+                        <div class="form-group">
+                            <label>Jumlah Tasmi Sekali Duduk:</label>
+                            <input type="number" x-model="editTasmiAmount" min="0" max="1173">
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-success" @click="saveTasmiEdit()">Simpan</button>
+                            <button class="btn btn-secondary" @click="showEditTasmiModal = false">Batal</button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function syathibiyyahTracker() {
+            return {
+                activeTab: 'ziyadah',
+                isLoggedIn: false,
+                loginUsername: '',
+                loginPassword: '',
+                loginError: '',
+                participants: [
+                    { id: 1, name: 'Afif Zain', totalHafalan: 150, lastZiyadah: '1-150', maxTasmi: 45, lastTasmi: 30 },
+                    { id: 2, name: 'Aufa Majda', totalHafalan: 200, lastZiyadah: '1-200', maxTasmi: 60, lastTasmi: 55 },
+                    { id: 3, name: 'Jalaluddin', totalHafalan: 180, lastZiyadah: '1-180', maxTasmi: 40, lastTasmi: 35 },
+                    { id: 4, name: 'M. Baber Khan', totalHafalan: 170, lastZiyadah: '1-170', maxTasmi: 50, lastTasmi: 45 },
+                                    ],
+                selectedParticipant: '',
+                ziyadahFrom: '',
+                ziyadahTo: '',
+                tasmiAmount: '',
+                message: '',
+                messageType: 'success',
+                showAddParticipantModal: false,
+                showEditParticipantModal: false,
+                showEditTasmiModal: false,
+                newParticipantName: '',
+                editingParticipant: '',
+                editParticipantName: '',
+                editParticipantHafalan: '',
+                editingTasmiParticipant: '',
+                editTasmiAmount: '',
+
+                init() {
+                    this.loadData();
+                },
+
+                get sortedParticipants() {
+                    return [...this.participants].sort((a, b) => b.totalHafalan - a.totalHafalan);
+                },
+
+                get sortedByTasmi() {
+                    return [...this.participants].sort((a, b) => b.maxTasmi - a.maxTasmi);
+                },
+
+                get averageHafalan() {
+                    if (this.participants.length === 0) return 0;
+                    return this.participants.reduce((sum, p) => sum + p.totalHafalan, 0) / this.participants.length;
+                },
+
+                get topParticipant() {
+                    return this.sortedParticipants[0];
+                },
+
+                get topTasmiParticipant() {
+                    return this.sortedByTasmi[0];
+                },
+
+                get sortedParticipantsByName() {
+                    return [...this.participants].sort((a, b) => a.name.localeCompare(b.name));
+                },
+
+                adminLogin() {
+                    if (this.loginUsername === 'mqiadmin' && this.loginPassword === 'akucintamqi') {
+                        this.isLoggedIn = true;
+                        this.loginError = '';
+                        this.loginUsername = '';
+                        this.loginPassword = '';
+                        this.showMessage('Login berhasil!', 'success');
+                    } else {
+                        this.loginError = 'Username atau password salah!';
+                    }
+                },
+
+                adminLogout() {
+                    this.isLoggedIn = false;
+                    this.activeTab = 'ziyadah';
+                    this.showMessage('Logout berhasil!', 'success');
+                },
+
+                updateZiyadah() {
+                    if (!this.selectedParticipant || !this.ziyadahFrom || !this.ziyadahTo) {
+                        this.showMessage('Mohon lengkapi field peserta, dari bait, dan sampai bait', 'error');
+                        return;
+                    }
+
+                    const from = parseInt(this.ziyadahFrom);
+                    const to = parseInt(this.ziyadahTo);
+
+                    if (from < 1 || to > 1173 || from > to) {
+                        this.showMessage('Rentang bait tidak valid. Pastikan: 1-1173 dan dari bait ≤ sampai bait', 'error');
+                        return;
+                    }
+
+                    const participant = this.participants.find(p => p.id == this.selectedParticipant);
+                    if (participant) {
+                        const newHafalan = to;
+                        participant.totalHafalan = Math.max(participant.totalHafalan, newHafalan);
+                        participant.lastZiyadah = `1-${to}`;
+                        
+                        // Update tasmi jika diisi
+                        if (this.tasmiAmount && parseInt(this.tasmiAmount) > 0) {
+                            const tasmi = parseInt(this.tasmiAmount);
+                            if (tasmi <= 1173) {
+                                participant.maxTasmi = Math.max(participant.maxTasmi, tasmi);
+                                participant.lastTasmi = tasmi;
+                            }
+                        }
+                        
+                        this.saveData();
+                        this.showMessage(`Data berhasil disimpan untuk ${participant.name}`, 'success');
+                        this.resetZiyadahForm();
+                    }
+                },
+
+                addParticipant() {
+                    if (!this.newParticipantName.trim()) {
+                        this.showMessage('Nama peserta tidak boleh kosong', 'error');
+                        return;
+                    }
+
+                    const newId = Math.max(...this.participants.map(p => p.id)) + 1;
+                    this.participants.push({
+                        id: newId,
+                        name: this.newParticipantName.trim(),
+                        totalHafalan: 0,
+                        lastZiyadah: '0-0',
+                        maxTasmi: 0,
+                        lastTasmi: 0
+                    });
+
+                    this.saveData();
+                    this.showMessage(`Peserta ${this.newParticipantName} berhasil ditambahkan`, 'success');
+                    this.newParticipantName = '';
+                    this.showAddParticipantModal = false;
+                },
+
+                saveParticipantEdit() {
+                    const participant = this.participants.find(p => p.id == this.editingParticipant);
+                    if (participant) {
+                        participant.name = this.editParticipantName;
+                        participant.totalHafalan = parseInt(this.editParticipantHafalan);
+                        
+                        this.saveData();
+                        this.showMessage('Data peserta berhasil diperbarui', 'success');
+                        this.showEditParticipantModal = false;
+                        this.editingParticipant = '';
+                    }
+                },
+
+                deleteParticipant() {
+                    if (confirm('Apakah Anda yakin ingin menghapus peserta ini?')) {
+                        this.participants = this.participants.filter(p => p.id != this.editingParticipant);
+                        this.saveData();
+                        this.showMessage('Peserta berhasil dihapus', 'success');
+                        this.showEditParticipantModal = false;
+                        this.editingParticipant = '';
+                    }
+                },
+
+                saveTasmiEdit() {
+                    const participant = this.participants.find(p => p.id == this.editingTasmiParticipant);
+                    if (participant) {
+                        const tasmiAmount = parseInt(this.editTasmiAmount);
+                        participant.maxTasmi = Math.max(participant.maxTasmi, tasmiAmount);
+                        participant.lastTasmi = tasmiAmount;
+                        
+                        this.saveData();
+                        this.showMessage('Data tasmi berhasil diperbarui', 'success');
+                        this.showEditTasmiModal = false;
+                        this.editingTasmiParticipant = '';
+                    }
+                },
+
+                resetAllData() {
+                    if (confirm('Apakah Anda yakin ingin mereset semua data? Tindakan ini tidak dapat dibatalkan.')) {
+                        this.participants = [];
+                        this.saveData();
+                        this.showMessage('Semua data berhasil direset', 'success');
+                    }
+                },
+
+                resetZiyadahForm() {
+                    this.selectedParticipant = '';
+                    this.ziyadahFrom = '';
+                    this.ziyadahTo = '';
+                    this.tasmiAmount = '';
+                },
+
+                showMessage(msg, type) {
+                    this.message = msg;
+                    this.messageType = type;
+                    setTimeout(() => {
+                        this.message = '';
+                    }, 5000);
+                },
+
+                saveData() {
+                    // Dalam implementasi nyata, ini akan menyimpan ke database
+                    console.log('Data saved:', this.participants);
+                },
+
+                loadData() {
+                    // Dalam implementasi nyata, ini akan memuat dari database
+                    console.log('Data loaded');
+                },
+
+                // Watch untuk auto-fill form edit
+                $watch: {
+                    editingParticipant(newVal) {
+                        if (newVal) {
+                            const participant = this.participants.find(p => p.id == newVal);
+                            if (participant) {
+                                this.editParticipantName = participant.name;
+                                this.editParticipantHafalan = participant.totalHafalan;
+                            }
+                        }
+                    },
+
+                    editingTasmiParticipant(newVal) {
+                        if (newVal) {
+                            const participant = this.participants.find(p => p.id == newVal);
+                            if (participant) {
+                                this.editTasmiAmount = participant.lastTasmi;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
