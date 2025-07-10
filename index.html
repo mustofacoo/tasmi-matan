@@ -145,6 +145,44 @@
             margin-bottom: 10px;
         }
 
+        .status-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .status-option {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .status-option.active {
+            border-color: #d4af37;
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .status-option:hover {
+            border-color: #d4af37;
+        }
+
+        .status-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .ziyadah-fields {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
         .btn {
             padding: 12px 25px;
             border: none;
@@ -381,6 +419,97 @@
             text-align: center;
         }
 
+        .month-selector {
+            background: rgba(212, 175, 55, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .absensi-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #d4af37;
+        }
+
+        .summary-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2d5016;
+        }
+
+        .summary-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .absensi-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .absensi-header {
+            background: linear-gradient(135deg, #2d5016 0%, #3a6b1c 100%);
+            color: white;
+            padding: 15px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            font-weight: bold;
+        }
+
+        .absensi-row {
+            padding: 15px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+
+        .absensi-row:last-child {
+            border-bottom: none;
+        }
+
+        .absensi-row:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .status-ziyadah {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-sakit {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-berhalangan {
+            background: #fff3cd;
+            color: #856404;
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .container {
@@ -409,6 +538,10 @@
             .form-row {
                 grid-template-columns: 1fr;
                 gap: 10px;
+            }
+
+            .status-options {
+                grid-template-columns: 1fr;
             }
 
             .leaderboard-item {
@@ -442,6 +575,16 @@
 
             .admin-actions {
                 grid-template-columns: 1fr;
+            }
+
+            .absensi-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .absensi-header,
+            .absensi-row {
+                grid-template-columns: 1fr;
+                gap: 5px;
             }
 
             .modal {
@@ -504,6 +647,9 @@
                 <div class="tab" :class="{ active: activeTab === 'tasmi' }" @click="activeTab = 'tasmi'">
                      Rekap Tasmi
                 </div>
+                <div class="tab" :class="{ active: activeTab === 'absensi' }" @click="activeTab = 'absensi'">
+                    📊 Absensi
+                </div>
                 <div class="tab" :class="{ active: activeTab === 'admin', disabled: !isLoggedIn }" @click="activeTab = 'admin'">
                     ⚙️ Admin 
                 </div>
@@ -512,7 +658,7 @@
             <div class="content">
                 <!-- Tab Input Ziyadah -->
                 <div x-show="activeTab === 'ziyadah'">
-                    <h2 style="color: #2d5016; margin-bottom: 20px;">📝 Input Ziyadah Terakhir</h2>
+                    <h2 style="color: #2d5016; margin-bottom: 20px;">📝 Input Kehadiran & Ziyadah</h2>
                     
                     <div class="form-group">
                         <label for="participant">Pilih Peserta:</label>
@@ -524,26 +670,49 @@
                         </select>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="fromBait">Dari Bait:</label>
-                            <input type="number" id="fromBait" x-model="ziyadahFrom" min="1" max="1173" placeholder="Nomor bait awal">
-                        </div>
-                        <div class="form-group">
-                            <label for="toBait">Sampai Bait:</label>
-                            <input type="number" id="toBait" x-model="ziyadahTo" min="1" max="1173" placeholder="Nomor bait akhir">
+                    <div class="form-group">
+                        <label>Status Kehadiran:</label>
+                        <div class="status-options">
+                            <div class="status-option" :class="{ active: attendanceStatus === 'ziyadah' }" @click="attendanceStatus = 'ziyadah'">
+                                <div class="status-icon">📚</div>
+                                <div><strong>Ziyadah</strong></div>
+                                <div style="font-size: 12px; color: #666;">Menambah hafalan baru</div>
+                            </div>
+                            <div class="status-option" :class="{ active: attendanceStatus === 'sakit' }" @click="attendanceStatus = 'sakit'">
+                                <div class="status-icon">🤒</div>
+                                <div><strong>Sakit</strong></div>
+                                <div style="font-size: 12px; color: #666;">Tidak hadir karena sakit</div>
+                            </div>
+                            <div class="status-option" :class="{ active: attendanceStatus === 'berhalangan' }" @click="attendanceStatus = 'berhalangan'">
+                                <div class="status-icon">📅</div>
+                                <div><strong>Berhalangan</strong></div>
+                                <div style="font-size: 12px; color: #666;">Ada keperluan lain</div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="form-group-optional">
-                        <div class="optional-label">Opsional - Jumlah Tasmi Sekali Duduk Terakhir</div>
-                        <div class="form-group">
-                            <label for="tasmiAmount">Jumlah Tasmi Sekali Duduk:</label>
-                            <input type="number" id="tasmiAmount" x-model="tasmiAmount" min="0" max="1173" placeholder="Contoh: 50 (kosongkan jika tidak ada)">
+                    <div x-show="attendanceStatus === 'ziyadah'" class="ziyadah-fields">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="fromBait">Dari Bait:</label>
+                                <input type="number" id="fromBait" x-model="ziyadahFrom" min="1" max="1173" placeholder="Nomor bait awal">
+                            </div>
+                            <div class="form-group">
+                                <label for="toBait">Sampai Bait:</label>
+                                <input type="number" id="toBait" x-model="ziyadahTo" min="1" max="1173" placeholder="Nomor bait akhir">
+                            </div>
+                        </div>
+
+                        <div class="form-group-optional">
+                            <div class="optional-label">Opsional - Jumlah Tasmi Sekali Duduk Terakhir</div>
+                            <div class="form-group">
+                                <label for="tasmiAmount">Jumlah Tasmi Sekali Duduk:</label>
+                                <input type="number" id="tasmiAmount" x-model="tasmiAmount" min="0" max="1173" placeholder="Contoh: 50 (kosongkan jika tidak ada)">
+                            </div>
                         </div>
                     </div>
 
-                    <button class="btn btn-primary" @click="updateZiyadah()">
+                    <button class="btn btn-primary" @click="submitAttendance()">
                         💾 Simpan Data
                     </button>
 
@@ -610,6 +779,72 @@
                     </div>
                 </div>
 
+                <!-- Tab Absensi -->
+                <div x-show="activeTab === 'absensi'">
+                    <h2 style="color: #2d5016; margin-bottom: 20px;">📊 Rekap Absensi Bulanan</h2>
+                    
+                    <div class="month-selector">
+                        <label style="color: #2d5016; font-weight: bold; margin-bottom: 10px; display: block;">Pilih Bulan:</label>
+                        <select x-model="selectedMonth" style="max-width: 300px; margin: 0 auto;">
+                            <template x-for="month in availableMonths" :key="month.value">
+                                <option :value="month.value" x-text="month.label"></option>
+                            </template>
+                        </select>
+                    </div>
+
+                    <div class="absensi-summary">
+                        <div class="summary-card">
+                            <div class="summary-number" x-text="monthlyStats.totalSessions"></div>
+                            <div class="summary-label">Total Sesi</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-number" x-text="monthlyStats.totalZiyadah"></div>
+                            <div class="summary-label">Total Ziyadah</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-number" x-text="monthlyStats.totalSakit"></div>
+                            <div class="summary-label">Sakit</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-number" x-text="monthlyStats.totalBerhalangan"></div>
+                            <div class="summary-label">Berhalangan</div>
+                        </div>
+                    </div>
+
+                    <div class="absensi-table">
+                        <div class="absensi-header">
+                            <div>Nama Peserta</div>
+                            <div>Hadir</div>
+                            <div>Sakit</div>
+                            <div>Berhalangan</div>
+                            <div>Total Bait</div>
+                        </div>
+                        
+                        <template x-for="participant in participantsMonthlyData" :key="participant.id">
+                            <div class="absensi-row">
+                                <div>
+                                    <strong x-text="participant.name"></strong>
+                                    <div style="font-size: 12px; color: #666;">
+                                        <span x-text="participant.monthlyData.ziyadahSessions"></span> sesi ziyadah
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="status-badge status-ziyadah" x-text="participant.monthlyData.ziyadahSessions"></span>
+                                </div>
+                                <div>
+                                    <span class="status-badge status-sakit" x-text="participant.monthlyData.sakitSessions"></span>
+                                </div>
+                                <div>
+                                    <span class="status-badge status-berhalangan" x-text="participant.monthlyData.berhalaganSessions"></span>
+                                </div>
+                                <div>
+                                    <strong x-text="participant.monthlyData.totalBaitThisMonth"></strong> bait
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
                 <!-- Tab Admin -->
                 <div x-show="activeTab === 'admin' && isLoggedIn">
                     <div class="current-user">
@@ -640,6 +875,7 @@
                         <p><strong>Rata-rata Hafalan:</strong> <span x-text="Math.round(averageHafalan)"></span> bait</p>
                         <p><strong>Peserta Terdepan:</strong> <span x-text="topParticipant?.name || 'Belum ada'"></span></p>
                         <p><strong>Tasmi Tertinggi:</strong> <span x-text="topTasmiParticipant?.maxTasmi || 0"></span> bait</p>
+                        <p><strong>Total Input Bulan Ini:</strong> <span x-text="monthlyStats.totalSessions"></span> sesi</p>
                     </div>
                 </div>
             </div>
@@ -744,8 +980,9 @@
                     { id: 2, name: 'Aufa Majda', totalHafalan: 200, lastZiyadah: '1-200', maxTasmi: 60, lastTasmi: 55 },
                     { id: 3, name: 'Jalaluddin', totalHafalan: 180, lastZiyadah: '1-180', maxTasmi: 40, lastTasmi: 35 },
                     { id: 4, name: 'M. Baber Khan', totalHafalan: 170, lastZiyadah: '1-170', maxTasmi: 50, lastTasmi: 45 },
-                                    ],
+                ],
                 selectedParticipant: '',
+                attendanceStatus: '',
                 ziyadahFrom: '',
                 ziyadahTo: '',
                 tasmiAmount: '',
@@ -760,9 +997,12 @@
                 editParticipantHafalan: '',
                 editingTasmiParticipant: '',
                 editTasmiAmount: '',
+                selectedMonth: '',
+                attendanceRecords: [],
 
                 init() {
                     this.loadData();
+                    this.selectedMonth = this.getCurrentMonthValue();
                 },
 
                 get sortedParticipants() {
@@ -790,6 +1030,70 @@
                     return [...this.participants].sort((a, b) => a.name.localeCompare(b.name));
                 },
 
+                get availableMonths() {
+                    const months = [];
+                    const startDate = new Date(2025, 6, 1); // Juli 2025 (month index 6)
+                    const currentDate = new Date();
+                    
+                    let date = new Date(startDate);
+                    while (date <= currentDate) {
+                        const monthNames = [
+                            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                        ];
+                        
+                        const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                        const label = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+                        
+                        months.push({ value, label });
+                        
+                        date.setMonth(date.getMonth() + 1);
+                    }
+                    
+                    return months.reverse(); // Bulan terbaru di atas
+                },
+
+                getCurrentMonthValue() {
+                    const now = new Date();
+                    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                },
+
+                get monthlyStats() {
+                    const records = this.attendanceRecords.filter(record => 
+                        record.month === this.selectedMonth
+                    );
+                    
+                    return {
+                        totalSessions: records.length,
+                        totalZiyadah: records.filter(r => r.status === 'ziyadah').length,
+                        totalSakit: records.filter(r => r.status === 'sakit').length,
+                        totalBerhalangan: records.filter(r => r.status === 'berhalangan').length
+                    };
+                },
+
+                get participantsMonthlyData() {
+                    return this.participants.map(participant => {
+                        const records = this.attendanceRecords.filter(record => 
+                            record.participantId === participant.id && record.month === this.selectedMonth
+                        );
+                        
+                        const ziyadahRecords = records.filter(r => r.status === 'ziyadah');
+                        const totalBaitThisMonth = ziyadahRecords.reduce((sum, record) => 
+                            sum + (record.baitCount || 0), 0
+                        );
+                        
+                        return {
+                            ...participant,
+                            monthlyData: {
+                                ziyadahSessions: records.filter(r => r.status === 'ziyadah').length,
+                                sakitSessions: records.filter(r => r.status === 'sakit').length,
+                                berhalaganSessions: records.filter(r => r.status === 'berhalangan').length,
+                                totalBaitThisMonth: totalBaitThisMonth
+                            }
+                        };
+                    });
+                },
+
                 adminLogin() {
                     if (this.loginUsername === 'mqiadmin' && this.loginPassword === 'akucintamqi') {
                         this.isLoggedIn = true;
@@ -808,39 +1112,72 @@
                     this.showMessage('Logout berhasil!', 'success');
                 },
 
-                updateZiyadah() {
-                    if (!this.selectedParticipant || !this.ziyadahFrom || !this.ziyadahTo) {
-                        this.showMessage('Mohon lengkapi field peserta, dari bait, dan sampai bait', 'error');
-                        return;
-                    }
-
-                    const from = parseInt(this.ziyadahFrom);
-                    const to = parseInt(this.ziyadahTo);
-
-                    if (from < 1 || to > 1173 || from > to) {
-                        this.showMessage('Rentang bait tidak valid. Pastikan: 1-1173 dan dari bait ≤ sampai bait', 'error');
+                submitAttendance() {
+                    if (!this.selectedParticipant || !this.attendanceStatus) {
+                        this.showMessage('Mohon pilih peserta dan status kehadiran', 'error');
                         return;
                     }
 
                     const participant = this.participants.find(p => p.id == this.selectedParticipant);
-                    if (participant) {
+                    if (!participant) return;
+
+                    // Record attendance
+                    const record = {
+                        id: Date.now(),
+                        participantId: participant.id,
+                        status: this.attendanceStatus,
+                        date: new Date().toISOString().split('T')[0],
+                        month: this.getCurrentMonthValue(),
+                        timestamp: new Date().toISOString()
+                    };
+
+                    if (this.attendanceStatus === 'ziyadah') {
+                        if (!this.ziyadahFrom || !this.ziyadahTo) {
+                            this.showMessage('Mohon lengkapi rentang bait untuk ziyadah', 'error');
+                            return;
+                        }
+
+                        const from = parseInt(this.ziyadahFrom);
+                        const to = parseInt(this.ziyadahTo);
+
+                        if (from < 1 || to > 1173 || from > to) {
+                            this.showMessage('Rentang bait tidak valid. Pastikan: 1-1173 dan dari bait ≤ sampai bait', 'error');
+                            return;
+                        }
+
+                        // Update participant data
                         const newHafalan = to;
                         participant.totalHafalan = Math.max(participant.totalHafalan, newHafalan);
                         participant.lastZiyadah = `1-${to}`;
-                        
-                        // Update tasmi jika diisi
+
+                        // Add ziyadah info to record
+                        record.fromBait = from;
+                        record.toBait = to;
+                        record.baitCount = to - from + 1;
+
+                        // Update tasmi if provided
                         if (this.tasmiAmount && parseInt(this.tasmiAmount) > 0) {
                             const tasmi = parseInt(this.tasmiAmount);
                             if (tasmi <= 1173) {
                                 participant.maxTasmi = Math.max(participant.maxTasmi, tasmi);
                                 participant.lastTasmi = tasmi;
+                                record.tasmiAmount = tasmi;
                             }
                         }
-                        
-                        this.saveData();
-                        this.showMessage(`Data berhasil disimpan untuk ${participant.name}`, 'success');
-                        this.resetZiyadahForm();
                     }
+
+                    this.attendanceRecords.push(record);
+                    this.saveData();
+                    
+                    let statusText = '';
+                    switch(this.attendanceStatus) {
+                        case 'ziyadah': statusText = 'ziyadah'; break;
+                        case 'sakit': statusText = 'sakit'; break;
+                        case 'berhalangan': statusText = 'berhalangan'; break;
+                    }
+                    
+                    this.showMessage(`Status ${statusText} berhasil disimpan untuk ${participant.name}`, 'success');
+                    this.resetAttendanceForm();
                 },
 
                 addParticipant() {
@@ -881,6 +1218,7 @@
                 deleteParticipant() {
                     if (confirm('Apakah Anda yakin ingin menghapus peserta ini?')) {
                         this.participants = this.participants.filter(p => p.id != this.editingParticipant);
+                        this.attendanceRecords = this.attendanceRecords.filter(r => r.participantId != this.editingParticipant);
                         this.saveData();
                         this.showMessage('Peserta berhasil dihapus', 'success');
                         this.showEditParticipantModal = false;
@@ -905,13 +1243,15 @@
                 resetAllData() {
                     if (confirm('Apakah Anda yakin ingin mereset semua data? Tindakan ini tidak dapat dibatalkan.')) {
                         this.participants = [];
+                        this.attendanceRecords = [];
                         this.saveData();
                         this.showMessage('Semua data berhasil direset', 'success');
                     }
                 },
 
-                resetZiyadahForm() {
+                resetAttendanceForm() {
                     this.selectedParticipant = '';
+                    this.attendanceStatus = '';
                     this.ziyadahFrom = '';
                     this.ziyadahTo = '';
                     this.tasmiAmount = '';
@@ -927,7 +1267,10 @@
 
                 saveData() {
                     // Dalam implementasi nyata, ini akan menyimpan ke database
-                    console.log('Data saved:', this.participants);
+                    console.log('Data saved:', { 
+                        participants: this.participants, 
+                        attendanceRecords: this.attendanceRecords 
+                    });
                 },
 
                 loadData() {
